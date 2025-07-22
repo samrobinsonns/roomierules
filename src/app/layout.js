@@ -13,18 +13,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "RoomieRules – Flatmate Agreement Generator",
-  description: "Create a custom, UK-focused flatmate agreement in minutes.",
+  title: "RoomieRules – Complete Tenancy Management",
+  description: "Streamline your property management with our comprehensive platform for landlords and property developers.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-primary-light via-background to-accent-blue min-h-screen`}> 
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}> 
         <AppNav />
-        <div className="max-w-[95%] mx-auto w-full px-2 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-64px)]">
+        <main>
           {children}
-        </div>
+        </main>
       </body>
     </html>
   );

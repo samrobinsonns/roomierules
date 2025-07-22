@@ -1,10 +1,14 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import Button from "../components/ui/Button";
 
 export default function AppNav() {
   const [user, setUser] = useState(null); // null = loading, false = not logged in, object = user
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const isLandingPage = pathname === '/';
 
   useEffect(() => {
     async function fetchUser() {
@@ -60,6 +64,47 @@ export default function AppNav() {
     { href: "/tenant", label: "Tenant", roles: ["tenant"] },
   ];
 
+  // Landing page header - simple and clean
+  if (isLandingPage) {
+    return (
+      <header className="absolute top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🏠</span>
+              <span className="text-2xl font-bold text-gray-900">RoomieRules</span>
+            </div>
+            <div className="flex items-center gap-4">
+              {user === null ? (
+                <span className="text-gray-600">Loading...</span>
+              ) : user ? (
+                <Link href="/dashboard">
+                  <Button variant="secondary" size="sm">
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Link href="/login">
+                    <Button variant="secondary" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button size="sm">
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Regular navbar for other pages
   if (user === null) {
     return (
       <nav className="w-full bg-white dark:bg-black shadow flex items-center justify-between px-4 py-3 md:px-8 sticky top-0 z-20">

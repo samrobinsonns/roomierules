@@ -6,6 +6,7 @@ import Button from "../../components/ui/Button";
 import PropertyForm from "../../components/property/PropertyForm";
 import PropertyCard from "../../components/property/PropertyCard";
 import TenantAssignmentModal from "../../components/property/TenantAssignmentModal";
+import PageWrapper from "../../components/layout/PageWrapper";
 
 export default function PropertiesPage() {
   const router = useRouter();
@@ -203,19 +204,22 @@ export default function PropertiesPage() {
 
   if (showForm) {
     return (
-      <PropertyForm
-        property={editingProperty}
-        onSubmit={handlePropertySubmit}
-        onCancel={() => {
-          setShowForm(false);
-          setEditingProperty(null);
-        }}
-      />
+      <PageWrapper>
+        <PropertyForm
+          property={editingProperty}
+          onSubmit={handlePropertySubmit}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingProperty(null);
+          }}
+        />
+      </PageWrapper>
     );
   }
 
   return (
-    <div className="max-w-[98%] mx-auto w-full space-y-6">
+    <PageWrapper>
+      <div className="max-w-[98%] mx-auto w-full space-y-6">
       {/* Header */}
       <Card borderColor="accent-teal">
         <div className="flex items-center justify-between">
@@ -354,6 +358,7 @@ export default function PropertiesPage() {
           }}
         />
       )}
-    </div>
+      </div>
+    </PageWrapper>
   );
 } 

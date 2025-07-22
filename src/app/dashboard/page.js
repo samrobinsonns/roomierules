@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import LandlordDashboard from "../../components/dashboard/LandlordDashboard";
 import TenantDashboard from "../../components/dashboard/TenantDashboard";
 import Card from "../../components/ui/Card";
+import PageWrapper from "../../components/layout/PageWrapper";
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null);
@@ -42,25 +43,37 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <Card className="max-w-2xl mx-auto w-full text-center">
-        Loading dashboard...
-      </Card>
+      <PageWrapper>
+        <Card className="max-w-2xl mx-auto w-full text-center">
+          Loading dashboard...
+        </Card>
+      </PageWrapper>
     );
   }
   
   if (!user) {
     return (
-      <Card className="max-w-2xl mx-auto w-full text-center">
-        Not logged in. <a href="/login" className="text-blue-600 underline">Login here</a>
-      </Card>
+      <PageWrapper>
+        <Card className="max-w-2xl mx-auto w-full text-center">
+          Not logged in. <a href="/login" className="text-blue-600 underline">Login here</a>
+        </Card>
+      </PageWrapper>
     );
   }
 
   // If user is a landlord in any household, show landlord dashboard
   if (user.memberships?.some(m => m.role === 'landlord')) {
-    return <LandlordDashboard />;
+    return (
+      <PageWrapper>
+        <LandlordDashboard />
+      </PageWrapper>
+    );
   }
   
   // Otherwise, show tenant dashboard
-  return <TenantDashboard user={user} />;
+  return (
+    <PageWrapper>
+      <TenantDashboard user={user} />
+    </PageWrapper>
+  );
 } 
