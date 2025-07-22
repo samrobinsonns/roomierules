@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 export async function GET(request, { params }) {
   try {
+    const resolvedParams = await params;
     const userId = request.headers.get('x-user-id');
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,7 +15,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const property = await prisma.property.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(resolvedParams.id) },
       include: {
         documents: true,
         memberships: {
@@ -75,6 +76,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
+    const resolvedParams = await params;
     const formData = await request.formData();
     
     // Extract property data
@@ -93,7 +95,7 @@ export async function PUT(request, { params }) {
 
     // Update property
     const property = await prisma.property.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(resolvedParams.id) },
       data: propertyData,
     });
 
@@ -105,7 +107,7 @@ export async function PUT(request, { params }) {
         filename: doc.name,
         fileType: doc.type,
         fileSize: doc.size,
-        propertyId: parseInt(params.id),
+        propertyId: parseInt(resolvedParams.id),
       }));
 
       await prisma.document.createMany({
@@ -125,9 +127,10 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
+    const resolvedParams = await params;
     // Delete property (documents will be deleted automatically due to cascade)
     await prisma.property.delete({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(resolvedParams.id) },
     });
 
     return NextResponse.json({ message: "Property deleted successfully" });

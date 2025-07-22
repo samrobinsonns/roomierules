@@ -29,6 +29,13 @@ export default function PropertyDetailPage() {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [documentFile, setDocumentFile] = useState(null);
+  const [documentName, setDocumentName] = useState("");
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -102,6 +109,106 @@ export default function PropertyDetailPage() {
       setError(err.message);
     } finally {
       setInviteLoading(false);
+    }
+  }
+
+  async function handleDocumentUpload(e) {
+    e.preventDefault();
+    if (!documentFile || !documentName.trim()) {
+      setError("Please select a file and enter a document name");
+      return;
+    }
+
+    setUploadLoading(true);
+    setError("");
+    
+    try {
+      const userId = localStorage.getItem('userId');
+      const formData = new FormData();
+      formData.append('file', documentFile);
+      formData.append('name', documentName);
+      formData.append('propertyId', params.id);
+
+      const res = await fetch("/api/landlord/properties/documents/upload", {
+        method: "POST",
+        headers: {
+          'x-user-id': userId,
+        },
+        body: formData,
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to upload document");
+      }
+      
+      setDocumentFile(null);
+      setDocumentName("");
+      setShowDocumentUpload(false);
+      await fetchProperty(); // Refresh property data
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadLoading(false);
+    }
+  }
+
+  async function handleShareDocument(documentId, tenantIds) {
+    setShareLoading(true);
+    setError("");
+    
+    try {
+      const userId = localStorage.getItem('userId');
+      const res = await fetch("/api/landlord/properties/documents/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'x-user-id': userId,
+        },
+        body: JSON.stringify({
+          documentId,
+          tenantIds,
+          propertyId: parseInt(params.id),
+        }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to share document");
+      }
+      
+      setShowShareModal(false);
+      setSelectedDocument(null);
+      await fetchProperty(); // Refresh property data
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setShareLoading(false);
+    }
+  }
+
+  async function handleDeleteDocument(documentId) {
+    if (!confirm("Are you sure you want to delete this document?")) return;
+    
+    try {
+      const userId = localStorage.getItem('userId');
+      const res = await fetch(`/api/landlord/properties/documents/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          'x-user-id': userId,
+        },
+        body: JSON.stringify({ documentId }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to delete document");
+      }
+      
+      await fetchProperty(); // Refresh property data
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -355,23 +462,182 @@ export default function PropertyDetailPage() {
           </div>
 
           {/* Documents */}
-          {property.documents && property.documents.length > 0 && (
-            <Card>
-              <h2 className="text-xl font-bold mb-4 text-accent-teal">Documents</h2>
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-accent-teal">Documents</h2>
+              <Button onClick={() => setShowDocumentUpload(true)}>
+                Upload Document
+              </Button>
+            </div>
+            
+            {property.documents && property.documents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {property.documents.map(doc => (
-                  <div key={doc.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
-                    <span className="text-lg">📄</span>
-                    <div>
-                      <p className="font-medium text-sm">{doc.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                  <div key={doc.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-2xl">📄</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{doc.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Uploaded {new Date(doc.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedDocument(doc);
+                          setShowShareModal(true);
+                        }}
+                      >
+                        Share
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                      >
+                        Delete
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-            </Card>
+            ) : (
+              <div className="text-center py-8">
+                <span className="text-4xl mb-4 block">📄</span>
+                <p className="text-gray-600 mb-4">No documents uploaded yet.</p>
+                <p className="text-sm text-gray-500">Upload property documents, contracts, or other important files.</p>
+              </div>
+            )}
+          </Card>
+
+          {/* Document Upload Modal */}
+          {showDocumentUpload && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <Card className="max-w-md w-full">
+                <h2 className="text-xl font-bold mb-4 text-accent-teal">Upload Document</h2>
+                <form onSubmit={handleDocumentUpload} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Document Name
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter document name (e.g., Rental Agreement)"
+                      value={documentName}
+                      onChange={(e) => setDocumentName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      File
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) => setDocumentFile(e.target.files[0])}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Supported formats: PDF, DOC, DOCX, TXT, JPG, PNG (Max 10MB)
+                    </p>
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setShowDocumentUpload(false);
+                        setDocumentFile(null);
+                        setDocumentName("");
+                      }}
+                      disabled={uploadLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={uploadLoading}
+                    >
+                      {uploadLoading ? "Uploading..." : "Upload Document"}
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
+
+          {/* Share Document Modal */}
+          {showShareModal && selectedDocument && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <Card className="max-w-md w-full">
+                <h2 className="text-xl font-bold mb-4 text-accent-teal">Share Document</h2>
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-2">Sharing: <strong>{selectedDocument.name}</strong></p>
+                  <p className="text-sm text-gray-500">Select tenants to share this document with:</p>
+                </div>
+                
+                <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
+                  {property.memberships?.filter(m => m.role === 'tenant').map(membership => (
+                    <label key={membership.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        value={membership.user.id}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                          {membership.user.username[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{membership.user.username}</p>
+                          <p className="text-xs text-gray-500">{membership.user.email}</p>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                
+                {property.memberships?.filter(m => m.role === 'tenant').length === 0 && (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>No tenants assigned to this property yet.</p>
+                    <p className="text-sm">Invite tenants first to share documents.</p>
+                  </div>
+                )}
+                
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setShowShareModal(false);
+                      setSelectedDocument(null);
+                    }}
+                    disabled={shareLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      const selectedTenants = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                        .map(checkbox => parseInt(checkbox.value));
+                      handleShareDocument(selectedDocument.id, selectedTenants);
+                    }}
+                    disabled={shareLoading || property.memberships?.filter(m => m.role === 'tenant').length === 0}
+                  >
+                    {shareLoading ? "Sharing..." : "Share Document"}
+                  </Button>
+                </div>
+              </Card>
+            </div>
           )}
 
           {/* Invite Tenant Modal */}
