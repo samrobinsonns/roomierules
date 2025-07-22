@@ -92,6 +92,15 @@ export default function InviteAcceptancePage() {
       localStorage.setItem('username', data.username);
       localStorage.setItem('userRole', data.role);
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('userLogin', { 
+        detail: { 
+          id: data.userId, 
+          username: data.username, 
+          role: data.role 
+        } 
+      }));
+      
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (err) {

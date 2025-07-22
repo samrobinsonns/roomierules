@@ -29,6 +29,16 @@ export default function LoginForm() {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('username', data.username);
         localStorage.setItem('userRole', data.role);
+        
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('userLogin', { 
+          detail: { 
+            id: data.userId, 
+            username: data.username, 
+            role: data.role 
+          } 
+        }));
+        
         router.push("/dashboard");
       } else {
         const data = await res.json();

@@ -22,9 +22,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}> 
         <AppNav />
-        <main>
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   );

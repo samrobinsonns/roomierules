@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
+import { useAuth } from "../../../hooks/useAuth";
 
 function copyToClipboard(text) {
   if (navigator.clipboard) {
@@ -21,19 +22,22 @@ function copyToClipboard(text) {
 export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [property, setProperty] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
 
   useEffect(() => {
-    fetchProperty();
-  }, [params.id]);
+    if (!loading) {
+      fetchProperty();
+    }
+  }, [params.id, loading]);
 
   async function fetchProperty() {
-    setLoading(true);
+    setPageLoading(true);
     setError("");
     try {
       const userId = localStorage.getItem('userId');
@@ -62,7 +66,7 @@ export default function PropertyDetailPage() {
     } catch (err) {
       setError("Failed to fetch property");
     }
-    setLoading(false);
+    setPageLoading(false);
   }
 
   async function handleInviteTenant(e) {
@@ -148,30 +152,42 @@ export default function PropertyDetailPage() {
     }
   }
 
-  if (loading) {
+  if (loading || pageLoading) {
     return (
-      <Card className="max-w-[98%] mx-auto w-full text-center">
-        Loading property...
-      </Card>
+      <div className={user ? "lg:pl-64 min-h-screen bg-gray-50 dark:bg-gray-900" : "bg-gradient-to-br from-primary-light via-background to-accent-blue min-h-screen"}>
+        <div className={user ? "p-6 min-h-screen" : "max-w-[95%] mx-auto w-full px-2 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-64px)]"}>
+          <Card className="max-w-[98%] mx-auto w-full text-center">
+            Loading property...
+          </Card>
+        </div>
+      </div>
     );
   }
 
   if (error && !property) {
     return (
-      <Card className="max-w-[98%] mx-auto w-full text-center">
-        <div className="text-red-600 mb-4">{error}</div>
-        <Button onClick={() => router.push('/properties')}>
-          Back to Properties
-        </Button>
-      </Card>
+      <div className={user ? "lg:pl-64 min-h-screen bg-gray-50 dark:bg-gray-900" : "bg-gradient-to-br from-primary-light via-background to-accent-blue min-h-screen"}>
+        <div className={user ? "p-6 min-h-screen" : "max-w-[95%] mx-auto w-full px-2 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-64px)]"}>
+          <Card className="max-w-[98%] mx-auto w-full text-center">
+            <div className="text-red-600 mb-4">{error}</div>
+            <Button onClick={() => router.push('/properties')}>
+              Back to Properties
+            </Button>
+          </Card>
+        </div>
+      </div>
     );
   }
 
   if (!property) {
     return (
-      <Card className="max-w-[98%] mx-auto w-full text-center">
-        Property not found
-      </Card>
+      <div className={user ? "lg:pl-64 min-h-screen bg-gray-50 dark:bg-gray-900" : "bg-gradient-to-br from-primary-light via-background to-accent-blue min-h-screen"}>
+        <div className={user ? "p-6 min-h-screen" : "max-w-[95%] mx-auto w-full px-2 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-64px)]"}>
+          <Card className="max-w-[98%] mx-auto w-full text-center">
+            Property not found
+          </Card>
+        </div>
+      </div>
     );
   }
 
@@ -198,202 +214,206 @@ export default function PropertyDetailPage() {
   };
 
   return (
-    <div className="max-w-[98%] mx-auto w-full space-y-6">
-      {/* Header */}
-      <Card>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{getPropertyTypeIcon(property.propertyType)}</span>
-            <div>
-              <h1 className="text-2xl font-bold text-accent-teal">{property.name}</h1>
-              <p className="text-gray-600 capitalize">{property.propertyType}</p>
-            </div>
-          </div>
-          <Button
-            variant="secondary"
-            onClick={() => router.push('/properties')}
-          >
-            Back to Properties
-          </Button>
-        </div>
-      </Card>
-
-      {/* Property Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <h2 className="text-xl font-bold mb-4 text-accent-teal">Property Details</h2>
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold text-gray-700">Address</h3>
-              <p className="text-gray-600">{formatAddress(property)}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-semibold text-gray-700">Bedrooms</h3>
-                <p className="text-gray-600">{property.bedrooms}</p>
+    <div className={user ? "lg:pl-64 min-h-screen bg-gray-50 dark:bg-gray-900" : "bg-gradient-to-br from-primary-light via-background to-accent-blue min-h-screen"}>
+      <div className={user ? "p-6 min-h-screen" : "max-w-[95%] mx-auto w-full px-2 sm:px-4 lg:px-6 py-8 min-h-[calc(100vh-64px)]"}>
+        <div className="pt-8 max-w-[98%] mx-auto w-full space-y-6">
+          {/* Header */}
+          <Card>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{getPropertyTypeIcon(property.propertyType)}</span>
+                <div>
+                  <h1 className="text-2xl font-bold text-accent-teal">{property.name}</h1>
+                  <p className="text-gray-600 capitalize">{property.propertyType}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-700">Bathrooms</h3>
-                <p className="text-gray-600">{property.bathrooms}</p>
-              </div>
+              <Button
+                variant="secondary"
+                onClick={() => router.push('/properties')}
+              >
+                Back to Properties
+              </Button>
             </div>
-            {property.description && (
-              <div>
-                <h3 className="font-semibold text-gray-700">Description</h3>
-                <p className="text-gray-600">{property.description}</p>
-              </div>
-            )}
-          </div>
-        </Card>
+          </Card>
 
-        {/* Tenants & Invitations */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-accent-teal">Tenants & Invitations</h2>
-            <Button
-              onClick={() => setShowInviteForm(true)}
-            >
-              Invite Tenant
-            </Button>
-          </div>
-          {error && <div className="text-red-600 mb-4">{error}</div>}
-
-          {/* Invitations List */}
-          {property.invitations && property.invitations.length > 0 && (
-            <div className="space-y-3 mb-6">
-              {property.invitations.map(invite => (
-                <div key={invite.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+          {/* Property Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2">
+              <h2 className="text-xl font-bold mb-4 text-accent-teal">Property Details</h2>
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-semibold text-gray-700">Address</h3>
+                  <p className="text-gray-600">{formatAddress(property)}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-medium">
-                      {invite.invitedUser
-                        ? invite.invitedUser.username
-                        : invite.email}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {invite.invitedUser
-                        ? invite.invitedUser.email
-                        : invite.email}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Status: {invite.status === 'accepted' ? 'Accepted' : 'Pending'}
-                    </p>
+                    <h3 className="font-semibold text-gray-700">Bedrooms</h3>
+                    <p className="text-gray-600">{property.bedrooms}</p>
                   </div>
-                  {invite.status === 'pending' && (
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="primary"
-                          size="sm"
-                          onClick={() => copyToClipboard(invite.inviteLink)}
-                        >
-                          Copy Link
-                        </Button>
+                  <div>
+                    <h3 className="font-semibold text-gray-700">Bathrooms</h3>
+                    <p className="text-gray-600">{property.bathrooms}</p>
+                  </div>
+                </div>
+                {property.description && (
+                  <div>
+                    <h3 className="font-semibold text-gray-700">Description</h3>
+                    <p className="text-gray-600">{property.description}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Tenants & Invitations */}
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-accent-teal">Tenants & Invitations</h2>
+                <Button
+                  onClick={() => setShowInviteForm(true)}
+                >
+                  Invite Tenant
+                </Button>
+              </div>
+              {error && <div className="text-red-600 mb-4">{error}</div>}
+
+              {/* Invitations List */}
+              {property.invitations && property.invitations.length > 0 && (
+                <div className="space-y-3 mb-6">
+                  {property.invitations.map(invite => (
+                    <div key={invite.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                      <div>
+                        <p className="font-medium">
+                          {invite.invitedUser
+                            ? invite.invitedUser.username
+                            : invite.email}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {invite.invitedUser
+                            ? invite.invitedUser.email
+                            : invite.email}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Status: {invite.status === 'accepted' ? 'Accepted' : 'Pending'}
+                        </p>
+                      </div>
+                      {invite.status === 'pending' && (
+                        <div className="flex flex-col items-end gap-2">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => copyToClipboard(invite.inviteLink)}
+                            >
+                              Copy Link
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleRevokeInvitation(invite.id)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                          <span className="text-xs text-gray-400">Link valid until {new Date(invite.expiresAt).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {invite.status === 'accepted' && invite.invitedUser && (
+                        <span className="text-green-600 text-xs font-semibold">✔ Tenant</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Tenants List (legacy memberships) */}
+              {property.memberships && property.memberships.length > 0 && (
+                <div className="space-y-3">
+                  {property.memberships.map(membership => (
+                    <div key={membership.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                      <div>
+                        <p className="font-medium">{membership.user.username}</p>
+                        <p className="text-sm text-gray-600">{membership.user.email}</p>
+                        <p className="text-xs text-gray-500">Role: {membership.role}</p>
+                      </div>
+                      {membership.role === 'tenant' && (
                         <Button
                           variant="danger"
                           size="sm"
-                          onClick={() => handleRevokeInvitation(invite.id)}
+                          onClick={() => removeTenant(membership.user.id)}
                         >
                           Remove
                         </Button>
-                      </div>
-                      <span className="text-xs text-gray-400">Link valid until {new Date(invite.expiresAt).toLocaleDateString()}</span>
+                      )}
                     </div>
-                  )}
-                  {invite.status === 'accepted' && invite.invitedUser && (
-                    <span className="text-green-600 text-xs font-semibold">✔ Tenant</span>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Tenants List (legacy memberships) */}
-          {property.memberships && property.memberships.length > 0 && (
-            <div className="space-y-3">
-              {property.memberships.map(membership => (
-                <div key={membership.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                  <div>
-                    <p className="font-medium">{membership.user.username}</p>
-                    <p className="text-sm text-gray-600">{membership.user.email}</p>
-                    <p className="text-xs text-gray-500">Role: {membership.role}</p>
-                  </div>
-                  {membership.role === 'tenant' && (
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => removeTenant(membership.user.id)}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          {(!property.invitations || property.invitations.length === 0) && (!property.memberships || property.memberships.length === 0) && (
-            <p className="text-gray-500 text-center py-4">No tenants or invitations yet</p>
-          )}
-        </Card>
-      </div>
-
-      {/* Documents */}
-      {property.documents && property.documents.length > 0 && (
-        <Card>
-          <h2 className="text-xl font-bold mb-4 text-accent-teal">Documents</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {property.documents.map(doc => (
-              <div key={doc.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
-                <span className="text-lg">📄</span>
-                <div>
-                  <p className="font-medium text-sm">{doc.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-              </div>
-            ))}
+              )}
+              {(!property.invitations || property.invitations.length === 0) && (!property.memberships || property.memberships.length === 0) && (
+                <p className="text-gray-500 text-center py-4">No tenants or invitations yet</p>
+              )}
+            </Card>
           </div>
-        </Card>
-      )}
 
-      {/* Invite Tenant Modal */}
-      {showInviteForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4 text-accent-teal">Invite Tenant</h2>
-            <form onSubmit={handleInviteTenant} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tenant Email
-                </label>
-                <Input
-                  type="email"
-                  placeholder="Enter tenant's email address"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  required
-                />
+          {/* Documents */}
+          {property.documents && property.documents.length > 0 && (
+            <Card>
+              <h2 className="text-xl font-bold mb-4 text-accent-teal">Documents</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {property.documents.map(doc => (
+                  <div key={doc.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
+                    <span className="text-lg">📄</span>
+                    <div>
+                      <p className="font-medium text-sm">{doc.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex gap-3 justify-end">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setShowInviteForm(false)}
-                  disabled={inviteLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={inviteLoading}
-                >
-                  {inviteLoading ? "Sending..." : "Send Invitation"}
-                </Button>
-              </div>
-            </form>
-          </Card>
+            </Card>
+          )}
+
+          {/* Invite Tenant Modal */}
+          {showInviteForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <Card className="max-w-md w-full">
+                <h2 className="text-xl font-bold mb-4 text-accent-teal">Invite Tenant</h2>
+                <form onSubmit={handleInviteTenant} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tenant Email
+                    </label>
+                    <Input
+                      type="email"
+                      placeholder="Enter tenant's email address"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-3 justify-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setShowInviteForm(false)}
+                      disabled={inviteLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={inviteLoading}
+                    >
+                      {inviteLoading ? "Sending..." : "Send Invitation"}
+                    </Button>
+                  </div>
+                </form>
+              </Card>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 } 
