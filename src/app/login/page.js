@@ -1,60 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import LoginForm from "../../components/auth/LoginForm";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-    if (res.ok) {
-      router.push("/dashboard");
-    } else {
-      setError("Invalid username or password");
-    }
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] text-[var(--foreground)] p-8">
-      <div className="w-full max-w-md bg-white dark:bg-black rounded-lg shadow p-8 flex flex-col items-center gap-6">
-        <h1 className="text-2xl font-bold mb-2">Sign in to RoomieRules</h1>
-        <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
-          <input
-            className="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-700 bg-transparent text-base"
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
-          />
-          <input
-            className="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-700 bg-transparent text-base"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          <button
-            className="w-full py-3 px-6 rounded bg-foreground text-background font-semibold hover:bg-opacity-90 transition text-lg"
-            type="submit"
-          >
-            Sign in
-          </button>
-        </form>
-        {error && <div className="text-red-600 font-medium">{error}</div>}
-        <div className="text-sm mt-2">Don't have an account? <Link href="/register" className="underline">Register</Link></div>
-      </div>
-    </div>
-  );
+  return <LoginForm />;
 } 
